@@ -1,5 +1,6 @@
 from torch import nn
 
+
 class BadNet(nn.Module):
 
     def __init__(self, input_channels, output_num):
@@ -34,3 +35,12 @@ class BadNet(nn.Module):
         x = self.fc1(x)
         x = self.fc2(x)
         return x
+
+
+if __name__ == '__main__':
+    model = BadNet(1, 10)
+    import torch
+    x = torch.randn(10, 1, 28, 28)
+    y = model(x)
+    print(y)
+    print(y.shape)

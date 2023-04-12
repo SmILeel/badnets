@@ -34,8 +34,8 @@ class CIFAR10Poison(CIFAR10):
 
         self.width, self.height, self.channels = self.__shape_info__()
 
-        self.trigger_handler = TriggerHandler( args.trigger_path, args.trigger_size, args.trigger_label, self.width, self.height)
-        self.poisoning_rate = args.poisoning_rate if train else 1.0
+        self.trigger_handler = TriggerHandler(args.trigger_path, args.trigger_size, args.trigger_label, self.width, self.height)
+        self.poisoning_rate = args.poisoning_rate if train else 1.0  # for test, poison all the samples
         indices = range(len(self.targets))
         self.poi_indices = random.sample(indices, k=int(len(indices) * self.poisoning_rate))
         print(f"Poison {len(self.poi_indices)} over {len(indices)} samples ( poisoning rate {self.poisoning_rate})")
@@ -77,8 +77,9 @@ class MNISTPoison(MNIST):
         self.width, self.height = self.__shape_info__()
         self.channels = 1
 
+        # the params of TriggerHandler is (trigger_path, trigger_size, trigger_label, img_width, img_height)
         self.trigger_handler = TriggerHandler( args.trigger_path, args.trigger_size, args.trigger_label, self.width, self.height)
-        self.poisoning_rate = args.poisoning_rate if train else 1.0
+        self.poisoning_rate = args.poisoning_rate if train else 1.0  # for the
         indices = range(len(self.targets))
         self.poi_indices = random.sample(indices, k=int(len(indices) * self.poisoning_rate))
         print(f"Poison {len(self.poi_indices)} over {len(indices)} samples ( poisoning rate {self.poisoning_rate})")
@@ -100,7 +101,7 @@ class MNISTPoison(MNIST):
         img = Image.fromarray(img.numpy(), mode="L")
         # NOTE: According to the threat model, the trigger should be put on the image before transform.
         # (The attacker can only poison the dataset)
-        if index in self.poi_indices:
+        if index in self.poi_indices:   # in this implementation, data already with target label would also be
             target = self.trigger_handler.trigger_label
             img = self.trigger_handler.put_trigger(img)
 

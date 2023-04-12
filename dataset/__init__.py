@@ -1,19 +1,22 @@
 from .poisoned_dataset import CIFAR10Poison, MNISTPoison
 from torchvision import datasets, transforms
+from torchvision.datasets import MNIST, CIFAR10
 import torch 
 import os 
 
 def build_init_data(dataname, download, dataset_path):
     if dataname == 'MNIST':
+        # it will automatically create a MNIST folder in dataset_path
         train_data = datasets.MNIST(root=dataset_path, train=True, download=download)
         test_data  = datasets.MNIST(root=dataset_path, train=False, download=download)
     elif dataname == 'CIFAR10':
-        train_data = datasets.CIFAR10(root=dataset_path, train=True,  download=download)
-        test_data  = datasets.CIFAR10(root=dataset_path, train=False, download=download)
+        # if you want to have a folder with name CIFAR10, you should add it after the dataset_path
+        train_data = datasets.CIFAR10(root=dataset_path+'CIFAR10/', train=True,  download=download)
+        test_data  = datasets.CIFAR10(root=dataset_path+'CIFAR10/', train=False, download=download)
     return train_data, test_data
 
 def build_poisoned_training_set(is_train, args):
-    transform, detransform = build_transform(args.dataset)
+    transform, detransform = build_transform(args.dataset)  # the de-transform can be used for reconstruction
     print("Transform = ", transform)
 
     if args.dataset == 'CIFAR10':
@@ -70,3 +73,25 @@ def build_transform(dataset):
     detransform = transforms.Normalize((-mean / std).tolist(), (1.0 / std).tolist()) # you can use detransform to recover the image
     
     return transform, detransform
+
+
+def build_clean_dataset(args):
+    transform, detransform = build_transform(args.dataset)
+    print("Transform = ", transform)
+
+    if args.dataset == 'CIFAR10':
+        trainset = CIFAR10(root=args.data_path, train=True, download=True, transform=transform)
+        testset = CIFAR10(root=args.data_path, train=False, download=True, transform=transform)
+        nb_classes = 10
+    elif args.dataset == 'MNIST':
+        trainset = MNIST(root=args.data_path, train=True, download=True, transform=transform)
+        testset = MNIST(root=args.data_path, train=False, download=True, transform=transform)
+        nb_classes = 10
+    else:
+        raise NotImplementedError()
+
+    assert nb_classes == args.nb_classes
+    print("Number of the class = %d" % args.nb_classes)
+    print(trainset)
+
+    return trainset, testset
